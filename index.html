@@ -219,23 +219,55 @@ function addV(cod){
 }
 
 function renderV(){
-  const list=document.getElementById('vlist');
-  const empty=document.getElementById('vempty');
+  var list=document.getElementById('vlist');
+  var empty=document.getElementById('vempty');
   if(!items.length){list.innerHTML='';empty.style.display='block';return;}
   empty.style.display='none';
   list.innerHTML=items.map(function(it){
-    const v=it.v;
-    const isPt=v.tipo_punti==='punti';
-    const totP=isPt?(v.punti*it.qty):null;
-    const totE=v.euro_squadra!==null?(v.euro_squadra*it.qty):null;
-    const ptStr=isPt?(v.punti*it.qty).toFixed(2).replace(/\.0+$/,'')+' pt':'\u20ac'+(v.punti*it.qty).toFixed(2);
-    const euStr=totE!==null?'\u20ac'+totE.toFixed(2).replace('.',','):'&mdash;';
-    return '<div class="vcard"><div class="vhead"><div style="flex:1"><div class="vcode">'+esc(v.codice)+'</div><div class="vdesc">'+esc(v.descrizione)+'</div></div><button class="xbtn" onclick="delV('+it.id+')">&#10005;</button></div><div class="qrow"><label>Qt\u00e0 ('+esc(v.um)+')</label><input type="number" min="0" step="any" value="'+it.qty+'" oninput="upQty('+it.id+',this.value)"></div><div class="cgrid"><div class="ci"><div class="cl">'+(isPt?'Punti FiberCop':'\u20ac FiberCop')+'</div><div class="cv cv-p">'+ptStr+'</div></div><div class="ci"><div class="cl">Compenso squadra</div><div class="cv cv-e">'+euStr+'</div></div></div></div>';
+    var v=it.v;
+    var isPt=v.tipo_punti==='punti';
+    var totP=isPt?(v.punti*it.qty):null;
+    var totE=v.euro_squadra!==null?(v.euro_squadra*it.qty):null;
+    var ptStr=isPt?(v.punti*it.qty).toFixed(2).replace(/\.0+$/,'')+' pt':'\u20ac'+(v.punti*it.qty).toFixed(2);
+    var euStr=totE!==null?'\u20ac'+totE.toFixed(2).replace('.',','):'&mdash;';
+    var d='<div class="vcard">';
+    d+='<div class="vhead"><div style="flex:1">';
+    d+='<div class="vcode">'+esc(v.codice)+'</div>';
+    d+='<div class="vdesc">'+esc(v.descrizione)+'</div></div>';
+    d+='<button class="xbtn" onclick="delV('+it.id+')">&#10005;</button></div>';
+    d+='<div class="qrow"><label>Qt\u00e0 ('+esc(v.um)+')</label>';
+    d+='<input type="number" min="0" step="any" value="'+it.qty+'"';
+    d+=' oninput="upQty('+it.id+',this.value)"></div>';
+    d+='<div class="cgrid">';
+    d+='<div class="ci"><div class="cl">'+(isPt?'Punti FiberCop':'\u20ac FiberCop')+'</div>';
+    d+='<div class="cv cv-p" id="vpt_'+it.id+'">'+ptStr+'</div></div>';
+    d+='<div class="ci"><div class="cl">Compenso squadra</div>';
+    d+='<div class="cv cv-e" id="veu_'+it.id+'">'+euStr+'</div></div>';
+    d+='</div></div>';
+    return d;
   }).join('');
 }
 
 function delV(id){items=items.filter(function(i){return i.id!==id;});renderV();updTot();}
-function upQty(id,val){var it=items.find(function(i){return i.id===id;});if(it){it.qty=parseFloat(val)||0;renderV();updTot();}}
+function upQty(id,val){
+  var it=items.find(function(i){return i.id===id;});
+  if(!it)return;
+  it.qty=parseFloat(val)||0;
+  var v=it.v;
+  var isPt=v.tipo_punti==='punti';
+  // Update only the two computed spans - no full re-render
+  var ptEl=document.getElementById('vpt_'+id);
+  var euEl=document.getElementById('veu_'+id);
+  if(ptEl){
+    var ptStr=isPt?(v.punti*it.qty).toFixed(2).replace(/\.0+$/,'')+' pt':'\u20ac'+(v.punti*it.qty).toFixed(2);
+    ptEl.textContent=ptStr;
+  }
+  if(euEl){
+    var euStr=v.euro_squadra!==null?'\u20ac'+(v.euro_squadra*it.qty).toFixed(2).replace('.',','):'—';
+    euEl.textContent=euStr;
+  }
+  updTot();
+}
 
 function addEx(){exItems.push({id:Date.now(),desc:'',imp:0});renderEx();}
 function renderEx(){
