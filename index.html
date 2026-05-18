@@ -241,12 +241,42 @@ function addEx(){exItems.push({id:Date.now(),desc:'',imp:0});renderEx();}
 function renderEx(){
   document.getElementById('exlist').innerHTML=exItems.map(function(ex){
     var pct=((ex.imp||0)*0.45).toFixed(2).replace('.',',');
-    return '<div class="excard"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;font-weight:700;color:#065f46">Extra capitolato</span><button class="xbtn" onclick="delEx('+ex.id+')">&#10005;</button></div><div class="ex-inp"><div><label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:3px">Descrizione</label><input type="text" placeholder="es. Taglio rami" value="'+esc(ex.desc)+'" oninput="upEx('+ex.id+',\'desc\',this.value)" style="font-size:13px"></div><div><label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:3px">Importo \u20ac</label><input type="number" min="0" step="0.01" value="'+(ex.imp||'')+'" placeholder="0,00" oninput="upEx('+ex.id+',\'imp\',this.value)" style="font-size:13px"></div></div><div style="margin-top:6px;font-size:12px;color:#374151">Compenso squadra (45%): <strong style="color:#059669">\u20ac'+pct+'</strong></div></div>';
+    var d='<div class="excard">';
+    d+='<div style="display:flex;justify-content:space-between;align-items:center">';
+    d+='<span style="font-size:12px;font-weight:700;color:#065f46">Extra capitolato</span>';
+    d+='<button class="xbtn" onclick="delEx('+ex.id+')">&#10005;</button></div>';
+    d+='<div class="ex-inp">';
+    d+='<div><label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:3px">Descrizione</label>';
+    d+='<input type="text" placeholder="es. Taglio rami" value="'+esc(ex.desc)+'"';
+    d+=' onblur="upEx('+ex.id+',\'desc\',this.value)"';
+    d+=' style="font-size:13px"></div>';
+    d+='<div><label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:3px">Importo \u20ac</label>';
+    d+='<input type="number" min="0" step="0.01" value="'+(ex.imp||'')+'" placeholder="0,00"';
+    d+=' oninput="upEx('+ex.id+',\'imp\',this.value)"';
+    d+=' style="font-size:13px"></div></div>';
+    d+='<div style="margin-top:6px;font-size:12px;color:#374151">Compenso squadra (45%): ';
+    d+='<strong id="expct_'+ex.id+'" style="color:#059669">\u20ac'+pct+'</strong></div>';
+    d+='</div>';
+    return d;
   }).join('');
   updTot();
 }
+
 function delEx(id){exItems=exItems.filter(function(e){return e.id!==id;});renderEx();}
-function upEx(id,f,v){var ex=exItems.find(function(e){return e.id===id;});if(ex){ex[f]=f==='imp'?(parseFloat(v)||0):v;renderEx();}}
+function upEx(id,f,v){
+  var ex=exItems.find(function(e){return e.id===id;});
+  if(!ex)return;
+  if(f==='imp'){
+    ex.imp=parseFloat(v)||0;
+    // Update only the 45% label without re-rendering the whole list
+    var pct=(ex.imp*0.45).toFixed(2).replace('.',',');
+    var el=document.getElementById('expct_'+id);
+    if(el) el.textContent='€'+pct;
+    updTot();
+  } else {
+    ex[f]=v; // just update data, no re-render needed
+  }
+}
 
 function addNt(){ntItems.push({id:Date.now(),txt:''});renderNt();}
 function renderNt(){
